@@ -1,0 +1,28 @@
+services:
+  iclight:
+    build: .
+    image: imageediting/iclight:latest
+    container_name: iclight
+    ports:
+      - "7862:7862"    # Gradio Web UI
+      - "8002:8002"    # FastAPI REST API + Swagger
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+      - ./output:/output
+      - ./input:/workspace/input
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HF_HOME=/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  hf_cache:
+    driver: local

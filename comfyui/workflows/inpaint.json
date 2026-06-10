@@ -1,0 +1,60 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": { "ckpt_name": "v1-5-pruned-emaonly-fp16.safetensors" }
+  },
+  "2": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "a blue dress shirt, photorealistic, high quality, sharp focus",
+      "clip": ["1", 1]
+    }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "ugly, blurry, deformed, low quality, watermark",
+      "clip": ["1", 1]
+    }
+  },
+  "4": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "bryan_green.jpg", "upload": "image" }
+  },
+  "5": {
+    "class_type": "LoadImageMask",
+    "inputs": { "image": "shirt_mask.png", "upload": "image", "channel": "red" }
+  },
+  "6": {
+    "class_type": "VAEEncodeForInpaint",
+    "inputs": {
+      "pixels":       ["4", 0],
+      "vae":          ["1", 2],
+      "mask":         ["5", 0],
+      "grow_mask_by": 6
+    }
+  },
+  "7": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 42,
+      "steps": 25,
+      "cfg": 7.5,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1.0,
+      "model":        ["1", 0],
+      "positive":     ["2", 0],
+      "negative":     ["3", 0],
+      "latent_image": ["6", 0]
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": { "samples": ["7", 0], "vae": ["1", 2] }
+  },
+  "9": {
+    "class_type": "SaveImage",
+    "inputs": { "filename_prefix": "comfy_inpaint", "images": ["8", 0] }
+  }
+}

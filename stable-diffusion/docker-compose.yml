@@ -1,0 +1,30 @@
+services:
+  stable-diffusion:
+    build: .
+    image: imageediting/stable-diffusion:latest
+    container_name: stable-diffusion
+    ports:
+      - "7861:7861"   # Gradio Web UI — paint-to-mask canvas
+      - "8001:8001"   # FastAPI REST API + Swagger docs
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+      - ./output:/workspace/output
+      - ./input:/workspace/input
+    environment:
+      # Switch to SDXL: set MODEL_ID=diffusers/stable-diffusion-xl-1.0-inpainting-0.1
+      - MODEL_ID=runwayml/stable-diffusion-inpainting
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HF_HOME=/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  hf_cache:
+    driver: local

@@ -1,0 +1,32 @@
+services:
+  iopaint:
+    build: .
+    image: imageediting/iopaint:latest
+    container_name: iopaint
+    ports:
+      - "8080:8080"
+    volumes:
+      - iopaint_models:/root/.cache
+      - ./output:/workspace/output
+      - ./input:/workspace/input
+    environment:
+      # LaMa (big-lama.pt) is a precompiled TorchScript with no Blackwell (SM 12.0) CUDA kernels.
+      # Use IOPAINT_DEVICE=cpu for LaMa, or set IOPAINT_MODEL=sd1.5 for GPU inference via diffusers.
+      - IOPAINT_MODEL=lama
+      - IOPAINT_DEVICE=cpu
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    stdin_open: false
+    tty: false
+
+volumes:
+  iopaint_models:
+    driver: local

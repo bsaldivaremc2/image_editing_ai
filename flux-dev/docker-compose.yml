@@ -1,0 +1,30 @@
+services:
+  flux-dev:
+    build: .
+    image: imageediting/flux-dev:latest
+    container_name: flux-dev
+    ports:
+      - "7864:7864"    # Gradio Web UI
+      - "8004:8004"    # FastAPI REST API
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+      - ./output:/output
+      - ./input:/workspace/input
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HF_HOME=/root/.cache/huggingface
+      # Use Schnell by default (Apache 2.0, no auth); set to black-forest-labs/FLUX.1-dev for Dev
+      - FLUX_MODEL_ID=black-forest-labs/FLUX.1-schnell
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  hf_cache:
+    driver: local

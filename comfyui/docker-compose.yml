@@ -1,0 +1,30 @@
+services:
+  comfyui:
+    build: .
+    image: imageediting/comfyui:latest
+    container_name: comfyui
+    ports:
+      - "8188:8188"    # ComfyUI Web UI + REST API (same port)
+    volumes:
+      - comfyui_models:/comfyui/models
+      - hf_cache:/root/.cache/huggingface
+      - ./output:/workspace/output
+      - ./input:/workspace/input
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HF_HOME=/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  comfyui_models:
+    driver: local
+  hf_cache:
+    driver: local
